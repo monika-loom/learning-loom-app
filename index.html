@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Loom AI - Lesson Planning Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes floatAnimation {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            color: #e5e7eb;
+            overflow-x: hidden; /* Prevent horizontal scroll from vectors */
+        }
+        #vector-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .floating-vector {
+            position: absolute;
+            color: rgba(167, 139, 250, 0.08); /* Soft purple, very low opacity */
+            animation: floatAnimation 6s ease-in-out infinite;
+            will-change: transform;
+        }
+        .hidden {
+            display: none;
+        }
+        .tab-button.active {
+            border-color: #818cf8;
+            color: #c7d2fe;
+            background-color: rgba(79, 70, 229, 0.2);
+        }
+        .canvas-container {
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+            background-color: #1f2937;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #ai-modal {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div id="vector-background">
+        <!-- Floating educational vectors -->
+        <div class="floating-vector" style="top: 10%; left: 5%; width: 100px; height: 100px; animation-duration: 8s;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12,2C6.47,2 2,6.47 2,12C2,17.53 6.47,22 12,22C17.53,22 22,17.53 22,12C22,6.47 17.53,2 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z" /></svg>
+        </div>
+        <div class="floating-vector" style="top: 20%; left: 85%; width: 80px; height: 80px; animation-duration: 6s; animation-delay: 1s;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4A2,2 0 0,0 18,2M13,12L11.5,9.5L10,12L7.5,6H9.91L10.73,8.5L11.5,6.09L12.27,8.5L13.09,6H15.5L13,12M13,18H7V16H13V18M17,14H7V12H17V14M17,10H7V8H17V10Z" /></svg>
+        </div>
+        <div class="floating-vector" style="top: 70%; left: 15%; width: 120px; height: 120px; animation-duration: 9s; animation-delay: 2s;">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M17,2H7C5.9,2 5,2.9 5,4V20C5,21.1 5.9,22 7,22H17C18.1,22 19,21.1 19,20V4C19,2.9 18.1,2 17,2M17,16H12V18H17V20H11V14H16V12H11V10H16V8H11V4H17V6H12V8H11V6H7V18H11V16H12V18H7V4H11V6H12V4H17V8H12V10H17V12H12V14H17V16Z" /></svg>
+        </div>
+         <div class="floating-vector" style="top: 80%; left: 80%; width: 90px; height: 90px; animation-duration: 7s; animation-delay: 3s;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2Z" /></svg>
+        </div>
+        <div class="floating-vector" style="top: 45%; left: 45%; width: 60px; height: 60px; animation-duration: 5s; animation-delay: 0.5s;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M14.5,19H16V14H11V16H13.67C12.55,17.24 10.88,18 9,18C5.69,18 3,15.31 3,12C3,8.69 5.69,6 9,6C10.66,6 12.14,6.64 13.25,7.75L14.67,6.33C13.1,4.76 11.12,3.75 9,3.75C4.03,3.75 0,7.86 0,12.75C0,17.64 4.03,21.75 9,21.75C11.12,21.75 13.1,20.74 14.5,19.25V19Z" /></svg>
+        </div>
+        <div class="floating-vector" style="top: 5%; left: 40%; width: 50px; height: 50px; animation-duration: 10s; animation-delay: 1.5s;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M6,3C3.79,3 2,4.79 2,7C2,9.21 3.79,11 6,11C8.21,11 10,9.21 10,7C10,4.79 8.21,3 6,3M6,9C4.9,9 4,8.1 4,7C4,5.9 4.9,5 6,5C7.1,5 8,5.9 8,7C8,8.1 7.1,9 6,9M6,13C3.79,13 2,14.79 2,17C2,19.21 3.79,21 6,21C8.21,21 10,19.21 10,17C10,14.79 8.21,13 6,13M6,19C4.9,19 4,18.1 4,17C4,15.9 4.9,15 6,15C7.1,15 8,15.9 8,17C8,18.1 7.1,19 6,19M13,4H21V6H13V4M13,10H21V12H13V10M13,16H21V18H13V16Z" /></svg>
+        </div>
+    </div>
+
+    <div id="app-container" class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 relative z-10">
+
+        <!-- Landing Page -->
+        <div id="landingPage">
+            <div class="text-center py-16">
+                <h1 class="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Learning Loom AI</h1>
+                <p class="mt-4 text-lg text-gray-400">Your AI-powered assistant for crafting engaging lesson plans.</p>
+                <div class="mt-8 space-x-4">
+                    <button onclick="showAuthPage(false)" class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-indigo-500/50 transition-all transform hover:scale-105">Sign In</button>
+                    <button onclick="showAuthPage(true)" class="bg-transparent border-2 border-indigo-400 text-indigo-300 font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-400 hover:text-white transition-all transform hover:scale-105">Sign Up</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Page -->
+        <div id="authPage" class="hidden max-w-md mx-auto mt-10">
+            <div class="glass-card p-8 rounded-xl shadow-lg">
+                <h2 id="authTitle" class="text-3xl font-bold text-center text-gray-100"></h2>
+                <form id="authForm" class="mt-8 space-y-6">
+                    <div>
+                        <label for="email" class="text-sm font-medium text-gray-300">Email address</label>
+                        <input id="email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white">
+                    </div>
+                    <div>
+                        <label for="password" class="text-sm font-medium text-gray-300">Password</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white">
+                    </div>
+                    <p id="authError" class="text-red-400 text-sm"></p>
+                    <div>
+                        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                    </div>
+                </form>
+                <p class="mt-6 text-center text-sm">
+                    <a href="#" onclick="toggleAuthMode()" id="authToggleLink" class="font-medium text-indigo-400 hover:text-indigo-300"></a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Teacher Dashboard -->
+        <div id="dashboardPage" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-100"></h2>
+                <button onclick="logout()" class="text-sm font-medium text-indigo-400 hover:text-indigo-300">Logout</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                <div onclick="showPage('chatSetupPage')" class="glass-card p-10 rounded-xl shadow-lg hover:shadow-2xl cursor-pointer transition-all duration-300 hover:border-indigo-500">
+                    <h3 class="text-2xl font-bold text-indigo-400">Start a New Chat</h3>
+                    <p class="mt-2 text-gray-400">Generate a new lesson plan from scratch.</p>
+                </div>
+                <div onclick="showHistoryPage()" class="glass-card p-10 rounded-xl shadow-lg hover:shadow-2xl cursor-pointer transition-all duration-300 hover:border-indigo-500">
+                    <h3 class="text-2xl font-bold text-indigo-400">History</h3>
+                    <p class="mt-2 text-gray-400">Review your previously generated lessons.</p>
+                </div>
+            </div>
+             <div class="mt-6">
+                 <button onclick="getInspiration()" class="w-full glass-card p-6 rounded-xl shadow-lg hover:shadow-2xl cursor-pointer transition-all duration-300 hover:border-purple-500 text-center">
+                    <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Get Inspired ✨</h3>
+                    <p class="mt-2 text-gray-400">Get a random, creative teaching idea.</p>
+                </button>
+            </div>
+        </div>
+        
+        <!-- History Page -->
+        <div id="historyPage" class="hidden">
+            <button onclick="showPage('dashboardPage')" class="mb-6 text-indigo-400 font-semibold">&larr; Back to Dashboard</button>
+            <h2 class="text-3xl font-bold mb-6">Lesson History</h2>
+            <div id="historyList" class="space-y-4">
+                <!-- History items will be injected here -->
+            </div>
+        </div>
+
+        <!-- New Chat Setup Page -->
+        <div id="chatSetupPage" class="hidden">
+            <button onclick="showPage('dashboardPage')" class="mb-6 text-indigo-400 font-semibold">&larr; Back to Dashboard</button>
+            <div class="max-w-2xl mx-auto glass-card p-8 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-center">Create a New Lesson Plan</h2>
+                <form id="lessonForm" class="space-y-6">
+                    <div>
+                        <label for="topic" class="text-lg font-medium text-gray-300">Topic</label>
+                        <input id="topic" type="text" placeholder="e.g., The Solar System, Photosynthesis, Pythagorean Theorem" required class="mt-2 block w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+                    </div>
+                    <div>
+                        <label for="level" class="text-lg font-medium text-gray-300">Educational Level</label>
+                        <select id="level" required class="mt-2 block w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white">
+                            <option value="montessori">Montessori</option>
+                            <option value="primary">Primary</option>
+                            <option value="secondary">Secondary</option>
+                            <option value="higher_secondary">Higher Secondary & Competitive Exams</option>
+                        </select>
+                    </div>
+                    <div>
+                         <button type="submit" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <span id="generateBtnText">Generate Lesson ✨</span>
+                            <div id="loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-3"></div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Content Display Page -->
+        <div id="contentDisplayPage" class="hidden">
+            <button onclick="goBackToDashboardOrHistory()" class="mb-6 text-indigo-400 font-semibold">&larr; Back</button>
+            <h2 id="contentTitle" class="text-4xl font-bold mb-2"></h2>
+            <p id="contentLevel" class="text-gray-400 mb-6"></p>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Tabs for navigation -->
+                <div id="tabsContainer" class="lg:w-1/4 flex-shrink-0 space-y-2">
+                    <!-- Tabs will be injected here -->
+                </div>
+
+                <!-- Tab Content -->
+                <div id="tabContentContainer" class="flex-grow glass-card p-6 rounded-xl shadow-lg min-h-[500px]">
+                    <!-- Content will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Modal -->
+    <div id="ai-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="glass-card rounded-xl shadow-2xl p-6 w-full max-w-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center border-b border-gray-600 pb-3 mb-4">
+                <h3 id="modal-title" class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400"></h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div id="modal-content" class="prose prose-invert max-w-none prose-p:text-gray-300">
+                <!-- AI content will be injected here -->
+            </div>
+             <div id="modal-loader" class="hidden text-center p-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-400 mx-auto"></div>
+                <p class="mt-4 text-gray-400">Thinking...</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let isSignUp = false;
+    let currentUser = null;
+    let users = [];
+    let history = [];
+    let currentLesson = null;
+    let lastPage = 'dashboardPage';
+    let audioPlayer = new Audio();
+    let isPlaying = false;
+    let currentTtsButton = null;
+
+    // --- DOM ELEMENTS ---
+    const pages = ['landingPage', 'authPage', 'dashboardPage', 'historyPage', 'chatSetupPage', 'contentDisplayPage'];
+    const authTitle = document.getElementById('authTitle');
+    const authForm = document.getElementById('authForm');
+    const authToggleLink = document.getElementById('authToggleLink');
+    const authError = document.getElementById('authError');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const lessonForm = document.getElementById('lessonForm');
+    const loader = document.getElementById('loader');
+    const generateBtnText = document.getElementById('generateBtnText');
+    const modal = document.getElementById('ai-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalContent = document.getElementById('modal-content');
+    const modalLoader = document.getElementById('modal-loader');
+
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const storedUsers = localStorage.getItem('learningLoomUsers');
+        if (storedUsers) {
+            users = JSON.parse(storedUsers);
+        }
+
+        const sessionUser = sessionStorage.getItem('learningLoomCurrentUser');
+        if (sessionUser) {
+            currentUser = JSON.parse(sessionUser);
+            const userHistory = localStorage.getItem(`learningLoomHistory_${currentUser.email}`);
+            history = userHistory ? JSON.parse(userHistory) : [];
+            showPage('dashboardPage');
+        } else {
+            showPage('landingPage');
+        }
+    });
+
+    // --- NAVIGATION ---
+    function showPage(pageId) {
+        pages.forEach(page => document.getElementById(page).classList.add('hidden'));
+        document.getElementById(pageId).classList.remove('hidden');
+
+        if (pageId === 'dashboardPage') {
+            welcomeMessage.textContent = `Welcome, ${currentUser?.email.split('@')[0]}!`;
+        }
+    }
+
+    function goBackToDashboardOrHistory() {
+        showPage(lastPage);
+    }
+    
+    // --- AUTHENTICATION ---
+    function showAuthPage(isSigningUp) {
+        isSignUp = isSigningUp;
+        authError.textContent = '';
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+        updateAuthView();
+        showPage('authPage');
+    }
+
+    function updateAuthView() {
+        if (isSignUp) {
+            authTitle.textContent = 'Create an Account';
+            authForm.querySelector('button').textContent = 'Sign Up';
+            authToggleLink.textContent = 'Already have an account? Sign In';
+        } else {
+            authTitle.textContent = 'Sign In';
+            authForm.querySelector('button').textContent = 'Sign In';
+            authToggleLink.textContent = 'Don\'t have an account? Sign Up';
+        }
+    }
+    
+    function toggleAuthMode() {
+        isSignUp = !isSignUp;
+        authError.textContent = '';
+        updateAuthView();
+    }
+
+    authForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = e.target.email.value;
+        const password = e.target.password.value;
+        authError.textContent = '';
+
+        if (isSignUp) {
+            if (users.find(user => user.email === email)) {
+                authError.textContent = 'An account with this email already exists.';
+                return;
+            }
+            const newUser = { email, password };
+            users.push(newUser);
+            localStorage.setItem('learningLoomUsers', JSON.stringify(users));
+            login(newUser);
+        } else {
+            const user = users.find(u => u.email === email && u.password === password);
+            if (user) {
+                login(user);
+            } else {
+                authError.textContent = 'Invalid email or password.';
+            }
+        }
+    });
+    
+    function login(user) {
+        currentUser = user;
+        sessionStorage.setItem('learningLoomCurrentUser', JSON.stringify(user));
+        const userHistory = localStorage.getItem(`learningLoomHistory_${currentUser.email}`);
+        history = userHistory ? JSON.parse(userHistory) : [];
+        showPage('dashboardPage');
+    }
+
+    function logout() {
+        currentUser = null;
+        sessionStorage.removeItem('learningLoomCurrentUser');
+        showPage('landingPage');
+    }
+    
+    // --- HISTORY ---
+    function showHistoryPage() {
+        lastPage = 'historyPage';
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = '';
+        if (history.length === 0) {
+            historyList.innerHTML = '<p class="text-gray-400">You have no saved lessons yet.</p>';
+        } else {
+            [...history].reverse().forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'glass-card p-4 rounded-lg shadow-sm flex justify-between items-center cursor-pointer hover:border-indigo-500/80 transition-colors';
+                div.innerHTML = `
+                    <div>
+                        <h4 class="font-semibold text-lg text-gray-100">${item.topic}</h4>
+                        <p class="text-sm text-gray-400">${item.level.replace('_', ' ')} - ${new Date(item.date).toLocaleDateString()}</p>
+                    </div>
+                    <button class="text-red-400 hover:text-red-300 text-sm font-medium" onclick="deleteHistoryItem(event, ${history.length - 1 - index})">Delete</button>
+                `;
+                div.onclick = () => viewHistoryItem(history.length - 1 - index);
+                historyList.appendChild(div);
+            });
+        }
+        showPage('historyPage');
+    }
+
+    function viewHistoryItem(index) {
+        const item = history[index];
+        currentLesson = item.content;
+        displayGeneratedContent(item.topic, item.level, false);
+    }
+    
+    function deleteHistoryItem(event, index) {
+        event.stopPropagation();
+        // Use a custom modal for confirmation later if needed
+        const confirmed = window.confirm('Are you sure you want to delete this lesson?');
+        if (confirmed) {
+            history.splice(index, 1);
+            saveHistory();
+            showHistoryPage(); // Refresh the view
+        }
+    }
+
+    function saveHistory() {
+        if (currentUser) {
+            localStorage.setItem(`learningLoomHistory_${currentUser.email}`, JSON.stringify(history));
+        }
+    }
+
+    // --- LESSON GENERATION ---
+    lessonForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loader.classList.remove('hidden');
+        generateBtnText.classList.add('hidden');
+        
+        const topic = document.getElementById('topic').value;
+        const level = document.getElementById('level').value;
+
+        const sections = getSectionsForLevel(level);
+        const prompt = `As an expert lesson planner, create a detailed lesson plan for the topic "${topic}" at the "${level.replace('_', ' ')}" educational level. Generate the output as a single, valid JSON object. Do not include any text, markdown, or formatting outside of the JSON object itself. The JSON object must have keys corresponding to the following exact section titles: ${JSON.stringify(sections)}. The value for each key must be a string containing rich, well-formatted HTML content for that section. For sections that require printables, tests, or worksheets, generate complete and ready-to-use content with questions and answers within the HTML. For visuals like mind maps or diagrams, describe them in text as "[A mind map showing...]" or "[A diagram illustrating...]" because you cannot generate image files. Ensure all content is engaging and appropriate for the specified educational level.`;
+        
+        try {
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+const result = await callApiProxy('text', payload);
+const resultText = result.candidates[0].content.parts[0].text;
+            const generatedContent = extractJsonFromText(resultText);
+            
+            if (!generatedContent) {
+                throw new Error("Could not find a valid JSON object in the AI's response.");
+            }
+
+            currentLesson = generatedContent;
+            displayGeneratedContent(topic, level, true);
+        } catch (error) {
+            console.error('Error generating lesson:', error);
+            showModalWithError('Lesson Generation Failed', `Sorry, there was an error generating the lesson. The AI may have returned an invalid format. Please try again.\n\n<i class="text-xs text-gray-500">Details: ${error.message}</i>`);
+        } finally {
+            loader.classList.add('hidden');
+            generateBtnText.classList.remove('hidden');
+        }
+    });
+    
+    function extractJsonFromText(text) {
+        const match = text.match(/```json\s*([\s\S]*?)\s*```|({[\s\S]*})/);
+        if (match) {
+            const jsonString = match[1] || match[2];
+            try {
+                return JSON.parse(jsonString);
+            } catch (e) {
+                console.error("Failed to parse extracted JSON:", e);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    function displayGeneratedContent(topic, level, isNew) {
+        lastPage = 'dashboardPage';
+        const contentTitle = document.getElementById('contentTitle');
+        const contentLevel = document.getElementById('contentLevel');
+        const tabsContainer = document.getElementById('tabsContainer');
+        const tabContentContainer = document.getElementById('tabContentContainer');
+
+        contentTitle.textContent = `Lesson Plan: ${topic}`;
+        contentLevel.textContent = `Level: ${level.replace(/_/g, ' ')}`;
+        
+        tabsContainer.innerHTML = '';
+        tabContentContainer.innerHTML = '';
+
+        const tabs = Object.keys(currentLesson);
+
+        tabs.forEach((tab, index) => {
+            const button = document.createElement('button');
+            button.className = 'w-full text-left p-3 rounded-lg font-medium tab-button transition-colors duration-200 border border-transparent text-gray-300 hover:text-white';
+            button.textContent = tab;
+            button.onclick = () => openTab(tab, topic);
+            tabsContainer.appendChild(button);
+        });
+
+        if (isNew) {
+            history.push({
+                topic,
+                level,
+                date: new Date().toISOString(),
+                content: currentLesson
+            });
+            saveHistory();
+        }
+
+        showPage('contentDisplayPage');
+        openTab(tabs[0], topic); // Open the first tab by default
+    }
+
+    function openTab(tabName, topic) {
+        const tabContentContainer = document.getElementById('tabContentContainer');
+        const tabsContainer = document.getElementById('tabsContainer');
+        
+        if (isPlaying) {
+            audioPlayer.pause();
+        }
+        
+        Array.from(tabsContainer.children).forEach(btn => {
+            btn.classList.toggle('active', btn.textContent === tabName);
+        });
+
+        const contentData = currentLesson[tabName];
+        
+        const ttsEnabledTabs = [
+            "Rhymes and Songs 🎶", "Story Time 📚", "Words to Discover 🗣️", 
+            "Key Vocabulary 📖", "Let's Learn About 🌱", "Topic Overview 🗺️",
+            "A Fun Fact! 💡", "Did You Know? 🤔"
+        ];
+        
+        const showTtsButton = ttsEnabledTabs.includes(tabName);
+
+        tabContentContainer.innerHTML = `
+            <div class="flex justify-between items-start gap-2">
+                <h3 class="text-2xl font-bold mb-4 text-gray-100">${tabName}</h3>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    ${showTtsButton ? `<button class="tts-btn bg-green-500/20 text-green-300 text-xs font-bold py-1 px-3 rounded-full hover:bg-green-500/40 transition-colors flex items-center gap-1">
+                        <span class="tts-text">Listen</span> <span class="tts-icon">🔊</span>
+                    </button>` : ''}
+                    <button class="deeper-dive-btn bg-indigo-500/20 text-indigo-300 text-xs font-bold py-1 px-3 rounded-full hover:bg-indigo-500/40 transition-colors">Deeper Dive ✨</button>
+                </div>
+            </div>
+            <div class="prose max-w-none prose-invert prose-p:text-gray-300 prose-li:text-gray-300 prose-strong:text-white">${contentData}</div>
+        `;
+        
+        tabContentContainer.querySelector('.deeper-dive-btn').addEventListener('click', () => {
+            const sectionContent = new DOMParser().parseFromString(contentData, 'text/html').body.textContent || "";
+            const sectionContent = new DOMParser().parseFromString(contentData, 'text/html').body.textContent || "";
+const deepDivePrompt = `Regarding the topic "${topic}", a lesson section titled "${tabName}" contains the following content: "${sectionContent}". Please provide a "deeper dive." This could be a simpler explanation for a younger audience, a real-world analogy to make it more relatable, or a practical example. Present the information clearly and concisely.`;
+showModalWithAIResponse('Deeper Dive ✨', deepDivePrompt); // This function will now use our new proxy
+        });
+        
+        if (showTtsButton) {
+            const ttsButton = tabContentContainer.querySelector('.tts-btn');
+            ttsButton.addEventListener('click', () => {
+                const textToSpeak = new DOMParser().parseFromString(contentData, 'text/html').body.textContent || "";
+                handleTtsPlayback(ttsButton, textToSpeak);
+            });
+        }
+        
+        enhanceVisualDescriptions();
+    }
+    
+    function enhanceVisualDescriptions() {
+        const contentContainer = document.getElementById('tabContentContainer').querySelector('.prose');
+        if (!contentContainer) return;
+
+        const regex = /\[(.*?)\]/g;
+        // Use a function with replace to avoid issues with loops and innerHTML modification
+        contentContainer.innerHTML = contentContainer.innerHTML.replace(regex, (match, visualDescription) => {
+            const sanitizedDescription = visualDescription.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            return `
+                <div class="my-4 p-4 border border-dashed border-gray-600 rounded-lg bg-gray-900/50">
+                    <p class="italic text-gray-400">Visual Idea: ${visualDescription}</p>
+                    <button class="visual-gen-btn mt-2 bg-purple-500/20 text-purple-300 text-xs font-bold py-1 px-3 rounded-full hover:bg-purple-500/40 transition-colors" 
+                            onclick="generateVisual(this, '${sanitizedDescription}')">
+                        Generate Visual ✨
+                    </button>
+                    <div class="visual-placeholder mt-3 text-center"></div>
+                </div>
+            `;
+        });
+    }
+
+    async function generateVisual(button, description) {
+        const placeholder = button.nextElementSibling;
+        button.disabled = true;
+        button.textContent = 'Generating...';
+        
+        placeholder.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-48">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+                <p class="mt-4 text-sm text-gray-400">Creating your visual...</p>
+            </div>
+        `;
+
+        try {
+            const prompt = `Create a visually appealing, clear, and educational image for a lesson plan. The image should be: ${description}. Style: clean lines, simple, colorful, suitable for educational material.`;
+            const payload = { instances: [{ "prompt": prompt }], parameters: { "sampleCount": 1 } };
+const result = await callApiProxy('image', payload);
+const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+            placeholder.innerHTML = `<img src="${imageUrl}" alt="${description}" class="rounded-lg shadow-md border border-gray-700"/>`;
+            button.style.display = 'none'; // Hide button after generation
+        } catch (error) {
+            console.error('Image generation error:', error);
+            placeholder.innerHTML = `<p class="text-red-400">Sorry, the visual could not be generated. Please try again later.</p>`;
+            button.disabled = false;
+            button.textContent = 'Generate Visual ✨';
+        }
+    }
+    
+    // --- GEMINI API FEATURES ---
+
+    audioPlayer.onended = () => resetTtsButton();
+    audioPlayer.onpause = () => resetTtsButton();
+
+    function resetTtsButton() {
+         if (currentTtsButton) {
+            currentTtsButton.querySelector('.tts-text').textContent = 'Listen';
+            currentTtsButton.querySelector('.tts-icon').innerHTML = '🔊';
+            currentTtsButton.disabled = false;
+        }
+        isPlaying = false;
+        currentTtsButton = null;
+    }
+
+    async function handleTtsPlayback(button, text) {
+        if (isPlaying) {
+            audioPlayer.pause();
+            return;
+        }
+
+        if(currentTtsButton) {
+            resetTtsButton();
+        }
+
+        currentTtsButton = button;
+        isPlaying = true;
+        
+        const textSpan = button.querySelector('.tts-text');
+        const iconSpan = button.querySelector('.tts-icon');
+        
+        textSpan.textContent = 'Loading...';
+        iconSpan.innerHTML = `<div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>`;
+        button.disabled = true;
+
+        try {
+            const payload = {
+    "text": `Please read the following text in a clear, friendly, and engaging voice suitable for an educational setting: ${text}`,
+    "voice": { "languageCode": "en-US", "name": "en-US-Standard-C" },
+    "audioConfig": { "audioEncoding": "MP3" }
+};
+const result = await callApiProxy('tts', payload);
+const audioUrl = `data:audio/mp3;base64,${result.audioContent}`;
+            audioPlayer.src = audioUrl;
+            audioPlayer.play();
+            textSpan.textContent = 'Stop';
+            iconSpan.textContent = '⏹️';
+            button.disabled = false;
+        } catch (error) {
+            console.error('TTS Error:', error);
+            showModalWithError('Audio Generation Failed', `Sorry, there was an error generating the audio for this section. Please try again later.`);
+            resetTtsButton();
+        }
+    }
+
+    
+   async function callApiProxy(endpoint, payload) {
+    // This is the URL of our new middleman.
+    // When hosted on Vercel, this will point to our api/gemini.js function.
+    const proxyUrl = '/api/gemini';
+
+    try {
+        const response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // We send the endpoint type ('text', 'image', 'tts') and the original payload
+            body: JSON.stringify({ endpoint, payload })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            console.error('API Proxy Error Details:', errorBody);
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        return await response.json(); // Return the JSON data directly
+
+    } catch (error) {
+        console.error("API proxy call failed:", error);
+        throw error;
+    }
+}
+
+    async function getInspiration() {
+        const prompts = [
+            "Generate a creative, one-paragraph classroom activity idea that combines art and science for primary school students.",
+            "Provide a thought-provoking, open-ended question for secondary school history students about the impact of the internet.",
+            "Describe a simple, 5-minute mindfulness exercise a teacher can do with their students to start the day.",
+            "Suggest a fun group project idea for a high school literature class studying Shakespeare."
+        ];
+        const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+        showModalWithAIResponse('A Spark of Inspiration ✨', randomPrompt);
+    }
+    
+    async function showModalWithAIResponse(title, prompt) {
+        openModal(title);
+        modalContent.classList.add('hidden');
+        modalLoader.classList.remove('hidden');
+
+        try {
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+const result = await callApiProxy('text', payload);
+const response = result.candidates[0].content.parts[0].text;
+            modalContent.innerHTML = response.replace(/\n/g, '<br>'); // Basic formatting
+        } catch(error) {
+            modalContent.innerHTML = `<p class="text-red-400">Sorry, I couldn't fetch a response right now. Please try again later.</p>`;
+        } finally {
+            modalContent.classList.remove('hidden');
+            modalLoader.classList.add('hidden');
+        }
+    }
+    
+    function showModalWithError(title, message) {
+        openModal(title);
+        modalContent.innerHTML = `<p class="text-red-400">${message}</p>`;
+        modalContent.classList.remove('hidden');
+        modalLoader.classList.add('hidden');
+    }
+
+    function openModal(title) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.glass-card').classList.remove('scale-95');
+        }, 10);
+        modalTitle.textContent = title;
+    }
+
+    function closeModal() {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.querySelector('.glass-card').classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    function getSectionsForLevel(level) {
+        switch(level) {
+            case 'montessori': return ["Let's Learn About 🌱", "Words to Discover 🗣️", "A Fun Fact! 💡", "Rhymes and Songs 🎶", "Story Time 📚", "Watch and Discover 📺", "Questions to Wonder About 🤔", "Let's Get Hands-On! 👋", "Working with Montessori Materials ✨", "Printable Activities 📄", "Let's Create! 🎨", "Out in the World 🌳", "Grace & Courtesy 🙏", "Check for Understanding 👍"];
+            case 'primary': return ["Topic Overview 🗺️", "Key Vocabulary 📖", "Did You Know? 🤔", "Core Concepts 🎯", "Watch & Learn 💻", "Think & Discuss 💬", "Investigation & Experiments 🔬", "Worksheets & Printables 📄", "Project Ideas 🚀", "Group Projects & Collaboration 🤝", "Real-World Connections 🌍", "Quizzes & Practice Papers ✅"];
+            case 'secondary': return ["Introduction & Learning Objectives 🎯", "Background & Significance", "Key Terminology & Definitions 📖", "Core Concepts & Principles 🧠", "Case Studies & Applications 📄", "Multimedia Resources 💻", "Critical Thinking Questions 🤔", "Assignments & Problem Sets ✍️", "Research Topics & Further Reading 📚", "Career Pathways & Skill Building 💼", "Assessments & Examinations 📝"];
+            case 'higher_secondary': return ["Syllabus & Learning Outcomes 📜", "Conceptual Framework & Core Principles 🧠", "Glossary of Technical Terms 📖", "Derivations, Proofs & Applied Problems 🔬", "Higher-Order Thinking Skills (HOTS) Questions 🤔", "Quick Revision Notes & Mind Maps ⚡", "Previous Year Question Papers (Solved) 📝", "Practice Papers & Mock Tests ✍️", "Competitive Exam Corner 🚀", "Reference Materials & Further Reading 📚", "Career Guidance & University Pathways 💼"];
+            default: return [];
+        }
+    }
+
+</script>
+</body>
+</html>
+
