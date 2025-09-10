@@ -521,7 +521,6 @@ const resultText = result.candidates[0].content.parts[0].text;
         
         tabContentContainer.querySelector('.deeper-dive-btn').addEventListener('click', () => {
             const sectionContent = new DOMParser().parseFromString(contentData, 'text/html').body.textContent || "";
-            const sectionContent = new DOMParser().parseFromString(contentData, 'text/html').body.textContent || "";
 const deepDivePrompt = `Regarding the topic "${topic}", a lesson section titled "${tabName}" contains the following content: "${sectionContent}". Please provide a "deeper dive." This could be a simpler explanation for a younger audience, a real-world analogy to make it more relatable, or a practical example. Present the information clearly and concisely.`;
 showModalWithAIResponse('Deeper Dive ✨', deepDivePrompt); // This function will now use our new proxy
         });
