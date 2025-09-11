@@ -477,14 +477,14 @@
         });
 
         const contentData = currentLesson[tabName];
-        
-        const ttsEnabledTabs = [
-            "Rhymes and Songs 🎶", "Story Time 📚", "Words to Discover 🗣️", 
-            "Key Vocabulary 📖", "Let's Learn About 🌱", "Topic Overview 🗺️",
-            "A Fun Fact! 💡", "Did You Know? 🤔"
-        ];
-        
-        const showTtsButton = ttsEnabledTabs.includes(tabName);
+
+    const ttsEnabledTabs = [
+        "Rhythmic Learning 🎵", "Topic Narrative 📖", "Words to Discover 🗣️", 
+        "Key Vocabulary 📖", "Let's Learn About 🌱", "Topic Overview 🗺️",
+        "A Fun Fact! 💡", "Did You Know? 🤔"
+    ];
+
+    const showTtsButton = ttsEnabledTabs.includes(tabName);
 
         tabContentContainer.innerHTML = `
             <div class="flex justify-between items-start gap-2">
@@ -645,11 +645,13 @@
 
     function getSectionsForLevel(level) {
         switch(level) {
-            case 'montessori': return ["Let's Learn About 🌱", "Words to Discover 🗣️", "A Fun Fact! 💡", "Rhymes and Songs 🎶", "Story Time 📚", "Watch and Discover 📺", "Questions to Wonder About 🤔", "Let's Get Hands-On! 👋", "Working with Montessori Materials ✨", "Printable Activities 📄", "Let's Create! 🎨", "Out in the World 🌳", "Grace & Courtesy 🙏", "Check for Understanding 👍"];
-            case 'primary': return ["Topic Overview 🗺️", "Key Vocabulary 📖", "Did You Know? 🤔", "Core Concepts 🎯", "Watch & Learn 💻", "Think & Discuss 💬", "Investigation & Experiments 🔬", "Worksheets & Printables 📄", "Project Ideas 🚀", "Group Projects & Collaboration 🤝", "Real-World Connections 🌍", "Quizzes & Practice Papers ✅"];
+            case 'montessori': return ["Let's Learn About 🌱", "Words to Discover 🗣️", "A Fun Fact! 💡", "Rhythmic Learning 🎵", "Topic Narrative 📖", "Watch and Discover 📺", "Questions to Wonder About 🤔", "Let's Get Hands-On! 👋", "Working with Montessori Materials ✨", "Printable Activities 📄", "Let's Create! 🎨", "Out in the World 🌳", "Grace & Courtesy 🙏", "Check for Understanding 👍"];
+            case 'primary': return ["Topic Overview 🗺️", "Key Vocabulary 📖", "Did You Know? 🤔", "Core Concepts 🎯", "Watch & Learn 💻", "Think & Discuss 💬", "Investigation & Experiments 🔬", "Worksheets & Printables 📄", "Project Ideas 🚀", "Group Projects & Collaboration 🤝", "Real-World Connections 🌍", "Quizzes & Practice Papers ✅", "Rhythmic Learning 🎵", "Topic Narrative 📖"];
             case 'secondary': return ["Introduction & Learning Objectives 🎯", "Background & Significance", "Key Terminology & Definitions 📖", "Core Concepts & Principles 🧠", "Case Studies & Applications 📄", "Multimedia Resources 💻", "Critical Thinking Questions 🤔", "Assignments & Problem Sets ✍️", "Research Topics & Further Reading 📚", "Career Pathways & Skill Building 💼", "Assessments & Examinations 📝"];
             case 'higher_secondary': return ["Syllabus & Learning Outcomes 📜", "Conceptual Framework & Core Principles 🧠", "Glossary of Technical Terms 📖", "Derivations, Proofs & Applied Problems 🔬", "Higher-Order Thinking Skills (HOTS) Questions 🤔", "Quick Revision Notes & Mind Maps ⚡", "Previous Year Question Papers (Solved) 📝", "Practice Papers & Mock Tests ✍️", "Competitive Exam Corner 🚀", "Reference Materials & Further Reading 📚", "Career Guidance & University Pathways 💼"];
             default: return [];
+        }
+    }
         }
     }
 
