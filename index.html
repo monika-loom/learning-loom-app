@@ -372,8 +372,7 @@
             localStorage.setItem(`learningLoomHistory_${currentUser.email}`, JSON.stringify(history));
         }
     }
-
-    // --- LESSON GENERATION ---
+// --- LESSON GENERATION ---
     lessonForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         loader.classList.remove('hidden');
@@ -383,7 +382,7 @@
         const level = document.getElementById('level').value;
 
         const sections = getSectionsForLevel(level);
-        const prompt = `As an expert lesson planner, create a detailed lesson plan for the topic "${topic}" at the "${level.replace('_', ' ')}" educational level. Generate the output as a single, valid JSON object. Do not include any text, markdown, or formatting outside of the JSON object itself. The JSON object must have keys corresponding to the following exact section titles: ${JSON.stringify(sections)}. The value for each key must be a string containing rich, well-formatted HTML content for that section. For sections that require printables, tests, or worksheets, generate complete and ready-to-use content with questions and answers within the HTML. For visuals like mind maps or diagrams, describe them in text as "[A mind map showing...]" or "[A diagram illustrating...]" because you cannot generate image files. Ensure all content is engaging and appropriate for the specified educational level.`;
+        const prompt = `As an expert lesson planner, create a detailed lesson plan for the topic "${topic}" at the "${level.replace('_', ' ')}" educational level. Generate the output as a single, valid JSON object. Do not include any text, markdown, or formatting outside of the JSON object itself. The JSON object must have keys corresponding to the following exact section titles: ${JSON.stringify(sections)}. The value for each key must be a string containing rich, well-formatted HTML content for that section. For sections that require printables, tests, or worksheets, generate complete and ready-to-use content with questions and answers within the HTML. For visuals like mind maps or diagrams, describe them in text as "[A mind map showing...]" or "[A diagram illustrating...]" because you cannot generate image files. Crucially, for creative sections like 'Rhythmic Learning' or 'Topic Narrative', do not write instructions for the teacher. You must write the complete, final rhyme, song, or story yourself, ready to be read directly to the students. Ensure all content is engaging and appropriate for the specified educational level.`;
         
         try {
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
@@ -409,8 +408,7 @@
             loader.classList.add('hidden');
             generateBtnText.classList.remove('hidden');
         }
-    });
-    
+    });    
     function extractJsonFromText(text) {
         const match = text.match(/```json\s*([\s\S]*?)\s*```|({[\s\S]*})/);
         if (match) {
