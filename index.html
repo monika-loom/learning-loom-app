@@ -67,7 +67,6 @@
 <body class="text-gray-200">
 
     <div id="vector-background">
-        <!-- Floating educational vectors -->
         <div class="floating-vector" style="top: 10%; left: 5%; width: 100px; height: 100px; animation-duration: 8s;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12,2C6.47,2 2,6.47 2,12C2,17.53 6.47,22 12,22C17.53,22 22,17.53 22,12C22,6.47 17.53,2 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z" /></svg>
         </div>
@@ -90,7 +89,6 @@
 
     <div id="app-container" class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 relative z-10">
 
-        <!-- Landing Page -->
         <div id="landingPage">
             <div class="text-center py-16">
                 <h1 class="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Learning Loom AI</h1>
@@ -102,7 +100,6 @@
             </div>
         </div>
 
-        <!-- Authentication Page -->
         <div id="authPage" class="hidden max-w-md mx-auto mt-10">
             <div class="glass-card p-8 rounded-xl shadow-lg">
                 <h2 id="authTitle" class="text-3xl font-bold text-center text-gray-100"></h2>
@@ -126,7 +123,6 @@
             </div>
         </div>
 
-        <!-- Teacher Dashboard -->
         <div id="dashboardPage" class="hidden">
             <div class="flex justify-between items-center mb-8">
                 <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-100"></h2>
@@ -150,16 +146,13 @@
             </div>
         </div>
         
-        <!-- History Page -->
         <div id="historyPage" class="hidden">
             <button onclick="showPage('dashboardPage')" class="mb-6 text-indigo-400 font-semibold">&larr; Back to Dashboard</button>
             <h2 class="text-3xl font-bold mb-6">Lesson History</h2>
             <div id="historyList" class="space-y-4">
-                <!-- History items will be injected here -->
-            </div>
+                </div>
         </div>
 
-        <!-- New Chat Setup Page -->
         <div id="chatSetupPage" class="hidden">
             <button onclick="showPage('dashboardPage')" class="mb-6 text-indigo-400 font-semibold">&larr; Back to Dashboard</button>
             <div class="max-w-2xl mx-auto glass-card p-8 rounded-xl shadow-lg">
@@ -188,27 +181,21 @@
             </div>
         </div>
 
-        <!-- Content Display Page -->
         <div id="contentDisplayPage" class="hidden">
             <button onclick="goBackToDashboardOrHistory()" class="mb-6 text-indigo-400 font-semibold">&larr; Back</button>
             <h2 id="contentTitle" class="text-4xl font-bold mb-2"></h2>
             <p id="contentLevel" class="text-gray-400 mb-6"></p>
 
             <div class="flex flex-col lg:flex-row gap-8">
-                <!-- Tabs for navigation -->
                 <div id="tabsContainer" class="lg:w-1/4 flex-shrink-0 space-y-2">
-                    <!-- Tabs will be injected here -->
-                </div>
+                    </div>
 
-                <!-- Tab Content -->
                 <div id="tabContentContainer" class="flex-grow glass-card p-6 rounded-xl shadow-lg min-h-[500px]">
-                    <!-- Content will be injected here -->
-                </div>
+                    </div>
             </div>
         </div>
     </div>
 
-    <!-- AI Modal -->
     <div id="ai-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
         <div class="glass-card rounded-xl shadow-2xl p-6 w-full max-w-2xl transform scale-95 transition-transform duration-300">
             <div class="flex justify-between items-center border-b border-gray-600 pb-3 mb-4">
@@ -216,8 +203,7 @@
                 <button onclick="closeModal()" class="text-gray-400 hover:text-white">&times;</button>
             </div>
             <div id="modal-content" class="prose prose-invert max-w-none prose-p:text-gray-300">
-                <!-- AI content will be injected here -->
-            </div>
+                </div>
              <div id="modal-loader" class="hidden text-center p-8">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-400 mx-auto"></div>
                 <p class="mt-4 text-gray-400">Thinking...</p>
@@ -736,4 +722,3 @@ const response = result.candidates[0].content.parts[0].text;
 </script>
 </body>
 </html>
-
