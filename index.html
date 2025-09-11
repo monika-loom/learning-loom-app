@@ -389,7 +389,6 @@
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
             const result = await callApiProxy('text', payload);
             
-            // Check for the safetyRatings and blockages which can indicate no content
             if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
                  throw new Error("The content could not be generated due to safety settings. Please try a different topic.");
             }
@@ -467,7 +466,6 @@
         const tabContentContainer = document.getElementById('tabContentContainer');
         const tabsContainer = document.getElementById('tabsContainer');
         
-        // Stop any speech that might be playing when switching tabs
         if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
         }
@@ -477,14 +475,14 @@
         });
 
         const contentData = currentLesson[tabName];
-
-    const ttsEnabledTabs = [
-        "Rhythmic Learning 🎵", "Topic Narrative 📖", "Words to Discover 🗣️", 
-        "Key Vocabulary 📖", "Let's Learn About 🌱", "Topic Overview 🗺️",
-        "A Fun Fact! 💡", "Did You Know? 🤔"
-    ];
-
-    const showTtsButton = ttsEnabledTabs.includes(tabName);
+        
+        const ttsEnabledTabs = [
+            "Rhythmic Learning 🎵", "Topic Narrative 📖", "Words to Discover 🗣️", 
+            "Key Vocabulary 📖", "Let's Learn About 🌱", "Topic Overview 🗺️",
+            "A Fun Fact! 💡", "Did You Know? 🤔"
+        ];
+        
+        const showTtsButton = ttsEnabledTabs.includes(tabName);
 
         tabContentContainer.innerHTML = `
             <div class="flex justify-between items-start gap-2">
@@ -650,8 +648,6 @@
             case 'secondary': return ["Introduction & Learning Objectives 🎯", "Background & Significance", "Key Terminology & Definitions 📖", "Core Concepts & Principles 🧠", "Case Studies & Applications 📄", "Multimedia Resources 💻", "Critical Thinking Questions 🤔", "Assignments & Problem Sets ✍️", "Research Topics & Further Reading 📚", "Career Pathways & Skill Building 💼", "Assessments & Examinations 📝"];
             case 'higher_secondary': return ["Syllabus & Learning Outcomes 📜", "Conceptual Framework & Core Principles 🧠", "Glossary of Technical Terms 📖", "Derivations, Proofs & Applied Problems 🔬", "Higher-Order Thinking Skills (HOTS) Questions 🤔", "Quick Revision Notes & Mind Maps ⚡", "Previous Year Question Papers (Solved) 📝", "Practice Papers & Mock Tests ✍️", "Competitive Exam Corner 🚀", "Reference Materials & Further Reading 📚", "Career Guidance & University Pathways 💼"];
             default: return [];
-        }
-    }
         }
     }
 
