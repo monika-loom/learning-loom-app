@@ -599,46 +599,49 @@ const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encod
         currentTtsButton = null;
     }
 
-    async function handleTtsPlayback(button, text) {
-        if (isPlaying) {
-            audioPlayer.pause();
-            return;
-        }
+    
+// DELETE your old handleTtsPlayback function and ADD these two new functions.
 
-        if(currentTtsButton) {
-            resetTtsButton();
-        }
-
-        currentTtsButton = button;
-        isPlaying = true;
-        
-        const textSpan = button.querySelector('.tts-text');
-        const iconSpan = button.querySelector('.tts-icon');
-        
-        textSpan.textContent = 'Loading...';
-        iconSpan.innerHTML = `<div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>`;
-        button.disabled = true;
-
-        try {
-            const payload = {
-    "text": `Please read the following text in a clear, friendly, and engaging voice suitable for an educational setting: ${text}`,
-    "voice": { "languageCode": "en-US", "name": "en-US-Standard-C" },
-    "audioConfig": { "audioEncoding": "MP3" }
-};
-const result = await callApiProxy('tts', payload);
-const audioUrl = `data:audio/mp3;base64,${result.audioContent}`;
-            audioPlayer.src = audioUrl;
-            audioPlayer.play();
-            textSpan.textContent = 'Stop';
-            iconSpan.textContent = '⏹️';
-            button.disabled = false;
-        } catch (error) {
-            console.error('TTS Error:', error);
-            showModalWithError('Audio Generation Failed', `Sorry, there was an error generating the audio for this section. Please try again later.`);
-            resetTtsButton();
-        }
+function handleTtsPlayback(button, text) {
+    if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+        return;
     }
 
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    utterance.onstart = () => {
+        if (currentTtsButton && currentTtsButton !== button) {
+            resetTtsButton();
+        }
+        button.querySelector('.tts-text').textContent = 'Stop';
+        button.querySelector('.tts-icon').textContent = '⏹️';
+        isPlaying = true;
+        currentTtsButton = button;
+    };
+
+    utterance.onend = () => {
+        isPlaying = false;
+        resetTtsButton();
+        currentTtsButton = null;
+    };
+    
+    utterance.onerror = () => {
+        isPlaying = false;
+        resetTtsButton();
+        currentTtsButton = null;
+    }
+
+    speechSynthesis.speak(utterance);
+}
+
+function resetTtsButton() {
+     if (currentTtsButton) {
+        currentTtsButton.querySelector('.tts-text').textContent = 'Listen';
+        currentTtsButton.querySelector('.tts-icon').innerHTML = '🔊';
+        currentTtsButton.disabled = false;
+    }
+}
     
    async function callApiProxy(endpoint, payload) {
     // This is the URL of our new middleman.
