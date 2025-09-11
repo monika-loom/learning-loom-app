@@ -48,11 +48,6 @@
             color: #c7d2fe;
             background-color: rgba(79, 70, 229, 0.2);
         }
-        .canvas-container {
-            border: 1px solid #4b5563;
-            border-radius: 0.5rem;
-            background-color: #1f2937;
-        }
         .glass-card {
             background: rgba(17, 24, 39, 0.6);
             backdrop-filter: blur(10px);
@@ -78,12 +73,6 @@
         </div>
          <div class="floating-vector" style="top: 80%; left: 80%; width: 90px; height: 90px; animation-duration: 7s; animation-delay: 3s;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2Z" /></svg>
-        </div>
-        <div class="floating-vector" style="top: 45%; left: 45%; width: 60px; height: 60px; animation-duration: 5s; animation-delay: 0.5s;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M14.5,19H16V14H11V16H13.67C12.55,17.24 10.88,18 9,18C5.69,18 3,15.31 3,12C3,8.69 5.69,6 9,6C10.66,6 12.14,6.64 13.25,7.75L14.67,6.33C13.1,4.76 11.12,3.75 9,3.75C4.03,3.75 0,7.86 0,12.75C0,17.64 4.03,21.75 9,21.75C11.12,21.75 13.1,20.74 14.5,19.25V19Z" /></svg>
-        </div>
-        <div class="floating-vector" style="top: 5%; left: 40%; width: 50px; height: 50px; animation-duration: 10s; animation-delay: 1.5s;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M6,3C3.79,3 2,4.79 2,7C2,9.21 3.79,11 6,11C8.21,11 10,9.21 10,7C10,4.79 8.21,3 6,3M6,9C4.9,9 4,8.1 4,7C4,5.9 4.9,5 6,5C7.1,5 8,5.9 8,7C8,8.1 7.1,9 6,9M6,13C3.79,13 2,14.79 2,17C2,19.21 3.79,21 6,21C8.21,21 10,19.21 10,17C10,14.79 8.21,13 6,13M6,19C4.9,19 4,18.1 4,17C4,15.9 4.9,15 6,15C7.1,15 8,15.9 8,17C8,18.1 7.1,19 6,19M13,4H21V6H13V4M13,10H21V12H13V10M13,16H21V18H13V16Z" /></svg>
         </div>
     </div>
 
@@ -219,7 +208,6 @@
     let history = [];
     let currentLesson = null;
     let lastPage = 'dashboardPage';
-    let audioPlayer = new Audio();
     let isPlaying = false;
     let currentTtsButton = null;
 
@@ -371,7 +359,6 @@
     
     function deleteHistoryItem(event, index) {
         event.stopPropagation();
-        // Use a custom modal for confirmation later if needed
         const confirmed = window.confirm('Are you sure you want to delete this lesson?');
         if (confirmed) {
             history.splice(index, 1);
@@ -400,8 +387,14 @@
         
         try {
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
-const result = await callApiProxy('text', payload);
-const resultText = result.candidates[0].content.parts[0].text;
+            const result = await callApiProxy('text', payload);
+            
+            // Check for the safetyRatings and blockages which can indicate no content
+            if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
+                 throw new Error("The content could not be generated due to safety settings. Please try a different topic.");
+            }
+
+            const resultText = result.candidates[0].content.parts[0].text;
             const generatedContent = extractJsonFromText(resultText);
             
             if (!generatedContent) {
@@ -412,7 +405,7 @@ const resultText = result.candidates[0].content.parts[0].text;
             displayGeneratedContent(topic, level, true);
         } catch (error) {
             console.error('Error generating lesson:', error);
-            showModalWithError('Lesson Generation Failed', `Sorry, there was an error generating the lesson. The AI may have returned an invalid format. Please try again.\n\n<i class="text-xs text-gray-500">Details: ${error.message}</i>`);
+            showModalWithError('Lesson Generation Failed', `Sorry, there was an error generating the lesson. The AI may have returned an invalid format or the topic was blocked. Please try again with a different topic.\n\n<i class="text-xs text-gray-500">Details: ${error.message}</i>`);
         } finally {
             loader.classList.add('hidden');
             generateBtnText.classList.remove('hidden');
@@ -474,8 +467,9 @@ const resultText = result.candidates[0].content.parts[0].text;
         const tabContentContainer = document.getElementById('tabContentContainer');
         const tabsContainer = document.getElementById('tabsContainer');
         
-        if (isPlaying) {
-            audioPlayer.pause();
+        // Stop any speech that might be playing when switching tabs
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
         }
         
         Array.from(tabsContainer.children).forEach(btn => {
@@ -507,8 +501,8 @@ const resultText = result.candidates[0].content.parts[0].text;
         
         tabContentContainer.querySelector('.deeper-dive-btn').addEventListener('click', () => {
             const sectionContent = new DOMParser().parseFromString(contentData, 'text/html').body.textContent || "";
-const deepDivePrompt = `Regarding the topic "${topic}", a lesson section titled "${tabName}" contains the following content: "${sectionContent}". Please provide a "deeper dive." This could be a simpler explanation for a younger audience, a real-world analogy to make it more relatable, or a practical example. Present the information clearly and concisely.`;
-showModalWithAIResponse('Deeper Dive ✨', deepDivePrompt); // This function will now use our new proxy
+            const deepDivePrompt = `Regarding the topic "${topic}", a lesson section titled "${tabName}" contains the following content: "${sectionContent}". Please provide a "deeper dive." This could be a simpler explanation for a younger audience, a real-world analogy to make it more relatable, or a practical example. Present the information clearly and concisely.`;
+            showModalWithAIResponse('Deeper Dive ✨', deepDivePrompt);
         });
         
         if (showTtsButton) {
@@ -527,136 +521,74 @@ showModalWithAIResponse('Deeper Dive ✨', deepDivePrompt); // This function wil
         if (!contentContainer) return;
 
         const regex = /\[(.*?)\]/g;
-        // Use a function with replace to avoid issues with loops and innerHTML modification
+        // Display visual ideas as text, since image generation is removed for now
         contentContainer.innerHTML = contentContainer.innerHTML.replace(regex, (match, visualDescription) => {
-            const sanitizedDescription = visualDescription.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             return `
                 <div class="my-4 p-4 border border-dashed border-gray-600 rounded-lg bg-gray-900/50">
                     <p class="italic text-gray-400">Visual Idea: ${visualDescription}</p>
-                    <button class="visual-gen-btn mt-2 bg-purple-500/20 text-purple-300 text-xs font-bold py-1 px-3 rounded-full hover:bg-purple-500/40 transition-colors" 
-                            onclick="generateVisual(this, '${sanitizedDescription}')">
-                        Generate Visual ✨
-                    </button>
-                    <div class="visual-placeholder mt-3 text-center"></div>
                 </div>
             `;
         });
     }
-
-    async function generateVisual(button, description) {
-        const placeholder = button.nextElementSibling;
-        button.disabled = true;
-        button.textContent = 'Generating...';
-        
-        placeholder.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-48">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
-                <p class="mt-4 text-sm text-gray-400">Creating your visual...</p>
-            </div>
-        `;
-
-        try {
-            const prompt = `Create a visually appealing, clear, and educational image for a lesson plan. The image should be: ${description}. Style: clean lines, simple, colorful, suitable for educational material.`;
-            const payload = { instances: [{ "prompt": prompt }], parameters: { "sampleCount": 1 } };
-const result = await callApiProxy('image', payload);
-const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
-            placeholder.innerHTML = `<img src="${imageUrl}" alt="${description}" class="rounded-lg shadow-md border border-gray-700"/>`;
-            button.style.display = 'none'; // Hide button after generation
-        } catch (error) {
-            console.error('Image generation error:', error);
-            placeholder.innerHTML = `<p class="text-red-400">Sorry, the visual could not be generated. Please try again later.</p>`;
-            button.disabled = false;
-            button.textContent = 'Generate Visual ✨';
-        }
-    }
     
-    // --- GEMINI API FEATURES ---
+    // --- API and TTS Functions ---
 
-    audioPlayer.onended = () => resetTtsButton();
-    audioPlayer.onpause = () => resetTtsButton();
+    function handleTtsPlayback(button, text) {
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+            return;
+        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onstart = () => {
+            if (currentTtsButton && currentTtsButton !== button) {
+                resetTtsButton();
+            }
+            button.querySelector('.tts-text').textContent = 'Stop';
+            button.querySelector('.tts-icon').textContent = '⏹️';
+            isPlaying = true;
+            currentTtsButton = button;
+        };
+        utterance.onend = () => {
+            isPlaying = false;
+            resetTtsButton();
+            currentTtsButton = null;
+        };
+        utterance.onerror = (e) => {
+            console.error('Speech synthesis error:', e);
+            isPlaying = false;
+            resetTtsButton();
+            currentTtsButton = null;
+        }
+        speechSynthesis.speak(utterance);
+    }
 
     function resetTtsButton() {
-         if (currentTtsButton) {
+        if (currentTtsButton) {
             currentTtsButton.querySelector('.tts-text').textContent = 'Listen';
             currentTtsButton.querySelector('.tts-icon').innerHTML = '🔊';
             currentTtsButton.disabled = false;
         }
-        isPlaying = false;
-        currentTtsButton = null;
     }
-
     
-// DELETE your old handleTtsPlayback function and ADD these two new functions.
-
-function handleTtsPlayback(button, text) {
-    if (speechSynthesis.speaking) {
-        speechSynthesis.cancel();
-        return;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    utterance.onstart = () => {
-        if (currentTtsButton && currentTtsButton !== button) {
-            resetTtsButton();
+    async function callApiProxy(endpoint, payload) {
+        const proxyUrl = '/api/gemini';
+        try {
+            const response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endpoint, payload })
+            });
+            if (!response.ok) {
+                const errorBody = await response.json();
+                console.error('API Proxy Error Details:', errorBody);
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("API proxy call failed:", error);
+            throw error;
         }
-        button.querySelector('.tts-text').textContent = 'Stop';
-        button.querySelector('.tts-icon').textContent = '⏹️';
-        isPlaying = true;
-        currentTtsButton = button;
-    };
-
-    utterance.onend = () => {
-        isPlaying = false;
-        resetTtsButton();
-        currentTtsButton = null;
-    };
-    
-    utterance.onerror = () => {
-        isPlaying = false;
-        resetTtsButton();
-        currentTtsButton = null;
     }
-
-    speechSynthesis.speak(utterance);
-}
-
-function resetTtsButton() {
-     if (currentTtsButton) {
-        currentTtsButton.querySelector('.tts-text').textContent = 'Listen';
-        currentTtsButton.querySelector('.tts-icon').innerHTML = '🔊';
-        currentTtsButton.disabled = false;
-    }
-}
-    
-   async function callApiProxy(endpoint, payload) {
-    // This is the URL of our new middleman.
-    // When hosted on Vercel, this will point to our api/gemini.js function.
-    const proxyUrl = '/api/gemini';
-
-    try {
-        const response = await fetch(proxyUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            // We send the endpoint type ('text', 'image', 'tts') and the original payload
-            body: JSON.stringify({ endpoint, payload })
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.json();
-            console.error('API Proxy Error Details:', errorBody);
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        return await response.json(); // Return the JSON data directly
-
-    } catch (error) {
-        console.error("API proxy call failed:", error);
-        throw error;
-    }
-}
 
     async function getInspiration() {
         const prompts = [
@@ -673,12 +605,14 @@ function resetTtsButton() {
         openModal(title);
         modalContent.classList.add('hidden');
         modalLoader.classList.remove('hidden');
-
         try {
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
-const result = await callApiProxy('text', payload);
-const response = result.candidates[0].content.parts[0].text;
-            modalContent.innerHTML = response.replace(/\n/g, '<br>'); // Basic formatting
+            const result = await callApiProxy('text', payload);
+            if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
+                 throw new Error("The content could not be generated due to safety settings.");
+            }
+            const response = result.candidates[0].content.parts[0].text;
+            modalContent.innerHTML = response.replace(/\n/g, '<br>');
         } catch(error) {
             modalContent.innerHTML = `<p class="text-red-400">Sorry, I couldn't fetch a response right now. Please try again later.</p>`;
         } finally {
