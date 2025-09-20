@@ -1,9 +1,0 @@
-{
-  "redirects": [
-    {
-      "source": "/((?!error.html).*)",
-      "destination": "/error.html",
-      "permanent": false
-    }
-  ]
-}
